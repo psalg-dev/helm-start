@@ -1,0 +1,37 @@
+# This workflow will build a Java project with Maven, and cache/restore any dependencies to improve the workflow execution time
+# For more information see: https://docs.github.com/en/actions/automating-builds-and-tests/building-and-testing-java-with-maven
+
+# This workflow uses actions that are not certified by GitHub.
+# They are provided by a third-party and are governed by
+# separate terms of service, privacy policy, and support
+# documentation.
+
+name: Nightly Build
+
+on:
+  schedule:
+    - cron: '0 0 * * *'
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Helmify
+        uses: actions/checkout@v3
+        with:
+          ref: develop
+      - name: Set Build Environment
+        uses: ./.github/actions/setup-build
+      - name: Build Helmify
+        uses: ./.github/actions/build-helmify
+        with:
+          dockerhubUsername: ${{ secrets.DOCKERHUB_USERNAME }}
+          dockerhubToken: ${{ secrets.DOCKERHUB_TOKEN }}
+      - name: Deploy Helmify
+        uses: ./.github/actions/deploy-helmify
+        with:
+          deployHost: ${{ secrets.DEPLOY_HOST }}
+          deployUsername: ${{ secrets.DEPLOY_USERNAME }}
+          deployKey: ${{ secrets.DEPLOY_KEY }}
+          deployPort: ${{ secrets.DEPLOY_PORT }}
+          instance: helmify-dev
